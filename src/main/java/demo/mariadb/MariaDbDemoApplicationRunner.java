@@ -35,8 +35,8 @@ public class MariaDbDemoApplicationRunner implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		LOGGER.info("Cleaning demos");
-		demoRepository.deleteAllInBatch();
+		LOGGER.info("{} demos already inserted", demoRepository.count());
+		id = demoRepository.findMaxId().map(id -> id + 1).orElse(0l);
 
 		LOGGER.info("Generating demos");
 		var l1 = getDemoList(LocalDate.parse("2022-09-01"));
@@ -48,7 +48,7 @@ public class MariaDbDemoApplicationRunner implements ApplicationRunner {
 		var inserted = Stream.of(l1, l2).parallel().mapToLong(l -> demoService.insertDemosInBatches(l)).sum();
 		LOGGER.info("{} demos inserted", inserted);
 
-		LOGGER.info("Finding inserted demos");
+		LOGGER.info("Finding all {} demos", demoRepository.count());
 		demoRepository.findAll().stream().sorted(Comparator.comparing(Demo::getId))
 				.forEach(d -> LOGGER.info("{}: {}", d.getId(), d.getEventDateTime()));
 	}
